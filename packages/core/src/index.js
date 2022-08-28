@@ -1,4 +1,4 @@
-import { createDrawPoster } from './core/'
+import { createDrawPoster } from './core'
 
 /**
  * 获取drawPoster对象

@@ -1,5 +1,6 @@
-/node_modules
+**/node_modules
 yarn-error.log
 .DS_Store
 /.docz
-/dist
+/packages/client/**/dist
+/packages/server/**/dist
