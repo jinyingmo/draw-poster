@@ -42,24 +42,32 @@ function matchOneEmoji(str: string) {
   return matched
 }
 
+/**
+ * 将字符串分割为片段（支持 Emoji）
+ * @param str 字符串
+ * @returns 片段数组
+ */
 export function splitToSegment(str = ''): Segment[] {
   const arr: Segment[] = []
   while (str.length > 0) {
     const matched = matchOneEmoji(str)
     if (matched) {
       const firstIndex = str.indexOf(matched)
+      // 如果 Emoji 前面有普通文本，先添加普通文本
       if (firstIndex > 0) {
         arr.push({
           text: str.slice(0, firstIndex),
           type: TEXT_TYPE
         })
       }
+      // 添加 Emoji
       arr.push({
         text: matched,
         type: OTHER_TYPE
       })
       str = str.slice(firstIndex + matched.length)
     } else {
+      // 如果没有 Emoji，剩余部分作为普通文本
       arr.push({
         text: str,
         type: TEXT_TYPE
@@ -70,6 +78,11 @@ export function splitToSegment(str = ''): Segment[] {
   return arr
 }
 
+/**
+ * 计算字符串长度（Emoji 计为 1）
+ * @param str 字符串
+ * @returns 长度
+ */
 export function len(str = '') {
   let length = 0
   const segmentArr = splitToSegment(str)
