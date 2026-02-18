@@ -1,7 +1,6 @@
-// 加载图片
-export function loadImage(src) {
-  const img = new Image();
-  img.crossOrigin = 'anonymous';
+export function loadImage(src: string): Promise<HTMLImageElement> {
+  const img = new Image()
+  img.crossOrigin = 'anonymous'
   return new Promise((resolve, reject) => {
     img.onload = () => {
       resolve(img)
@@ -9,16 +8,21 @@ export function loadImage(src) {
     img.onerror = () => {
       reject(`获取${src}失败`)
     }
-    img.src = src;
-  });
+    img.src = src
+  })
 }
 
-// 获取图片像素
-export function getImageData(img, rect = [0, 0, img.width, img.height]) {
+export function getImageData(
+  img: HTMLImageElement,
+  rect: [number, number, number, number] = [0, 0, img.width, img.height]
+): ImageData {
   const canvas = document.createElement('canvas')
   canvas.width = img.width
   canvas.height = img.height
   const context = canvas.getContext('2d')
+  if (!context) {
+    throw new Error('Canvas context is required!')
+  }
   context.drawImage(img, 0, 0)
   return context.getImageData(...rect)
 }

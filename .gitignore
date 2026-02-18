@@ -5,3 +5,4 @@ pnpm-debug.log
 /.docz
 /packages/server/**/dist
 /packages/core/dist
+storybook-static

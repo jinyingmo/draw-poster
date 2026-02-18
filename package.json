@@ -8,7 +8,9 @@
     "build": "pnpm -r --stream build",
     "lint": "pnpm -r --if-present lint",
     "typecheck": "pnpm -r --if-present typecheck",
-    "test": "pnpm -r --if-present test"
+    "test": "pnpm -r --if-present test",
+    "storybook": "storybook dev -p 6006",
+    "storybook:build": "storybook build"
   },
   "repository": {
     "type": "git",
@@ -26,5 +28,17 @@
     "url": "https://github.com/jinyingmo/draw-poster/issues"
   },
   "homepage": "https://github.com/jinyingmo/draw-poster#readme",
-  "devDependencies": {}
+  "devDependencies": {
+    "@storybook/addon-essentials": "7.6.17",
+    "@storybook/react-webpack5": "7.6.17",
+    "@types/node": "20.11.30",
+    "@types/react": "18.2.66",
+    "@types/react-dom": "18.2.22",
+    "storybook": "7.6.17",
+    "typescript": "5.3.3"
+  },
+  "dependencies": {
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  }
 }
