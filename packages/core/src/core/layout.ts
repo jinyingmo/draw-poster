@@ -24,7 +24,7 @@ export interface BoundingBox {
  * @returns 包围盒
  */
 export const getLayerBounds = (
-  ctx: CanvasRenderingContext2D,
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   layer: Layer,
 ): BoundingBox => {
   switch (layer.type) {

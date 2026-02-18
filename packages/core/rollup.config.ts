@@ -3,6 +3,7 @@ import typescript from '@rollup/plugin-typescript'
 const config = [
   {
     input: './src/index.ts',
+    external: ['qrcode'],
     plugins: [
       typescript({
         exclude: 'node_modules/**',
@@ -14,12 +15,17 @@ const config = [
         format: 'umd',
         file: 'dist/index.umd.js',
         sourcemap: true,
-        name: 'index'
+        name: 'DrawPoster',
+        exports: 'named',
+        globals: {
+          qrcode: 'QRCode'
+        }
       },
       {
         format: 'es',
         file: 'dist/index.esm.js',
-        sourcemap: true
+        sourcemap: true,
+        exports: 'named'
       }
     ]
   }

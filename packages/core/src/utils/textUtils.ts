@@ -13,6 +13,16 @@ declare global {
       maxLines?: number,
     ) => WrapTextResult;
   }
+  interface OffscreenCanvasRenderingContext2D {
+    wrapText: (
+      text: string,
+      x: number,
+      y: number,
+      maxWidth?: number,
+      lineHeight?: number,
+      maxLines?: number,
+    ) => WrapTextResult;
+  }
 }
 
 /**
@@ -29,7 +39,8 @@ export function contextWrapText() {
    * @param maxLines 最大行数
    * @returns { lineNumber: number } 绘制的行数
    */
-  CanvasRenderingContext2D.prototype.wrapText = function (
+  const wrapTextImpl = function (
+    this: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
     text: string,
     x: number,
     y: number,
@@ -45,16 +56,14 @@ export function contextWrapText() {
       return { lineNumber: 0 };
     }
 
-    const context = this;
+    const context = this as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
     const canvas = context.canvas;
 
     if (typeof maxWidth === "undefined") {
       maxWidth = (canvas && canvas.width) || 300;
     }
     if (typeof lineHeight === "undefined") {
-      lineHeight =
-        (canvas && parseInt(window.getComputedStyle(canvas).lineHeight)) ||
-        parseInt(window.getComputedStyle(document.body).lineHeight);
+      lineHeight = 20; // default line height for offscreen canvas
     }
 
     const arrText = Array.from(text);
@@ -86,6 +95,9 @@ export function contextWrapText() {
       lineNumber,
     };
   };
+
+  CanvasRenderingContext2D.prototype.wrapText = wrapTextImpl;
+  OffscreenCanvasRenderingContext2D.prototype.wrapText = wrapTextImpl;
 }
 
 export {};

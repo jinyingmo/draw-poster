@@ -31,7 +31,7 @@ const applyLayerOffset = (layers: Layer[], dx: number, dy: number): Layer[] => {
         py + dy,
       ]);
     }
-    return l as Layer;
+    return l as unknown as Layer;
   });
 };
 

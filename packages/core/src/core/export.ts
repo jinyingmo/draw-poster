@@ -8,12 +8,12 @@ import { scaleValue } from './canvas'
  * @returns DataURL 字符串
  */
 export const exportDataURL = (
-  ctx: CanvasRenderingContext2D,
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   type = 'image/png',
   quality = 1
 ) => {
-  const canvas = ctx.canvas as HTMLCanvasElement
-  return canvas.toDataURL(type, quality)
+  const canvas = ctx.canvas as HTMLCanvasElement | OffscreenCanvas
+  return (canvas as HTMLCanvasElement).toDataURL(type, quality)
 }
 
 /**
@@ -24,14 +24,14 @@ export const exportDataURL = (
  * @returns Promise<Blob>
  */
 export const exportBlob = (
-  ctx: CanvasRenderingContext2D,
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   type = 'image/png',
   quality = 1
 ) => {
-  const canvas = ctx.canvas as HTMLCanvasElement
+  const canvas = ctx.canvas as HTMLCanvasElement | OffscreenCanvas
   return new Promise<Blob>((resolve, reject) => {
-    if (canvas.toBlob) {
-      canvas.toBlob((blob) => {
+    if ((canvas as HTMLCanvasElement).toBlob) {
+      (canvas as HTMLCanvasElement).toBlob((blob) => {
         if (blob) {
           resolve(blob)
         } else {
@@ -41,7 +41,7 @@ export const exportBlob = (
       return
     }
     try {
-      const dataUrl = canvas.toDataURL(type, quality)
+      const dataUrl = (canvas as HTMLCanvasElement).toDataURL(type, quality)
       const [meta, data] = dataUrl.split(',')
       const mimeMatch = meta.match(/data:(.*?);base64/)
       const mimeType = mimeMatch ? mimeMatch[1] : type
@@ -65,7 +65,7 @@ export const exportBlob = (
  * @returns ImageData
  */
 export const exportImageData = (
-  ctx: CanvasRenderingContext2D,
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   rect?: [number, number, number, number],
   ratio = 1
 ) => {
