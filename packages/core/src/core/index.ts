@@ -13,5 +13,8 @@ export const createDrawPoster = (
 ): DrawPoster => createDrawPosterCore(ctx, options);
 
 export * from "./types";
+export * from "./debug";
+export * from "./template";
+export { drawTextOnArc } from "./text";
 export * from "../utils/font";
 export * from "../utils/resource";

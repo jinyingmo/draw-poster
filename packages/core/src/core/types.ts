@@ -1,4 +1,6 @@
 import { ResourceManager } from "../utils/resource";
+import type { DebugOptions } from "./debug";
+import type { TemplateFn, TemplateData } from "./template";
 
 /**
  * 渐变颜色停止点
@@ -202,8 +204,14 @@ export type TextOptions = StyleOptions & {
   color?: string;
   /** 是否描边文本 */
   strokeText?: boolean;
+  /** 描边颜色（strokeText 为 true 时生效，优先于 strokeStyle） */
+  strokeColor?: string;
+  /** 描边宽度（strokeText 为 true 时生效，优先于 lineWidth） */
+  strokeWidth?: number;
   /** 字距 */
   letterSpacing?: number;
+  /** 文字排列方向 */
+  direction?: "horizontal" | "vertical";
 };
 
 /**
@@ -428,8 +436,8 @@ export type DrawPosterOptions = {
   ratio?: number;
   /** 插件列表 */
   plugins?: DrawPosterPlugin[];
-  /** 调试模式 */
-  debug?: boolean;
+  /** 调试模式：true 仅显示边界框，传入对象可细粒度控制网格/基准线/边界框 */
+  debug?: boolean | DebugOptions;
   /** 资源管理器 */
   resourceManager?: ResourceManager;
 };
@@ -544,4 +552,26 @@ export interface DrawPoster {
   // Plugin API (插件 API)
   /** 使用插件 */
   use: (plugin: DrawPosterPlugin) => void;
+
+  // Template API (模板 API)
+  /**
+   * 注册可复用模板
+   * @param name 模板名称
+   * @param fn 模板函数，接收数据返回图层列表
+   */
+  registerTemplate: <T extends TemplateData>(
+    name: string,
+    fn: TemplateFn<T>,
+  ) => void;
+  /**
+   * 根据模板创建图层并添加到画布
+   * @param name 模板名称
+   * @param data 模板数据
+   * @param offset 坐标偏移（可选）
+   */
+  createFromTemplate: <T extends TemplateData>(
+    name: string,
+    data?: T,
+    offset?: { x?: number; y?: number },
+  ) => Layer[];
 }

@@ -21,6 +21,8 @@ import {
   createLayerPath,
 } from "./shapes";
 import { drawText } from "./text";
+import { renderDebugHelpers } from "./debug";
+import { TemplateRegistry } from "./template";
 import type {
   CircleLayer,
   CircleOptions,
@@ -42,6 +44,8 @@ import type {
   TransformOptions,
   PerformanceStats,
   CanvasContext,
+  TemplateData,
+  TemplateFn,
 } from "./types";
 
 /**
@@ -138,88 +142,7 @@ export const createDrawPoster = (
     return resizeImage(img, targetWidth, targetHeight, targetRadius);
   };
 
-  /**
-   * 渲染调试辅助线
-   */
-  const renderDebug = () => {
-    if (!debug) return;
-    ctx.save();
-    ctx.strokeStyle = "red";
-    ctx.lineWidth = 1;
-    ctx.globalAlpha = 1;
-
-    layers.forEach(layer => {
-      if (layer.visible === false) return;
-
-      ctx.beginPath();
-      switch (layer.type) {
-        case "rect":
-        case "image":
-        case "qrcode": {
-          const l = layer as RectLayer | ImageLayer | QRCodeLayer;
-          ctx.strokeRect(
-            scaleValue(l.x, ratio),
-            scaleValue(l.y, ratio),
-            scaleValue(l.width, ratio),
-            scaleValue(l.height, ratio),
-          );
-          break;
-        }
-        case "circle": {
-          const l = layer as CircleLayer;
-          ctx.arc(
-            scaleValue(l.x, ratio),
-            scaleValue(l.y, ratio),
-            scaleValue(l.radius, ratio),
-            0,
-            Math.PI * 2,
-          );
-          ctx.stroke();
-          break;
-        }
-        case "line": {
-          const l = layer as LineLayer;
-          ctx.moveTo(scaleValue(l.x1, ratio), scaleValue(l.y1, ratio));
-          ctx.lineTo(scaleValue(l.x2, ratio), scaleValue(l.y2, ratio));
-          ctx.stroke();
-          break;
-        }
-        case "polygon": {
-          const l = layer as PolygonLayer;
-          if (l.points.length > 0) {
-            const [first, ...rest] = l.points;
-            ctx.moveTo(
-              scaleValue(first[0], ratio),
-              scaleValue(first[1], ratio),
-            );
-            rest.forEach(p =>
-              ctx.lineTo(scaleValue(p[0], ratio), scaleValue(p[1], ratio)),
-            );
-            if (l.closePath) {
-              ctx.closePath();
-            }
-            ctx.stroke();
-          }
-          break;
-        }
-        case "text": {
-          const l = layer as TextLayer;
-          // 估算文本包围盒
-          const metrics = ctx.measureText(l.text);
-          const width = metrics.width;
-          const height = (l.fontSize || 12) * ratio; // 粗略估算
-          ctx.strokeRect(
-            scaleValue(l.x, ratio),
-            scaleValue(l.y, ratio) - height, // 文本基线通常在底部，这是粗略的
-            width,
-            height,
-          );
-          break;
-        }
-      }
-    });
-    ctx.restore();
-  };
+  const templateRegistry = new TemplateRegistry();
 
   /**
    * 渲染所有图层
@@ -307,7 +230,7 @@ export const createDrawPoster = (
       }
     }
 
-    renderDebug();
+    renderDebugHelpers(ctx, layers, debug, ratio);
 
     for (const plugin of plugins) {
       plugin.afterDraw?.(ctx, layers, options);
@@ -594,6 +517,26 @@ export const createDrawPoster = (
       plugins.push(plugin);
       plugin.onInit?.(ctx, options);
     },
+
+    // 模板 API
+    /**
+     * 注册可复用模板
+     * @param name 模板名称
+     * @param fn 模板函数
+     */
+    registerTemplate: <T extends TemplateData>(name: string, fn: TemplateFn<T>) =>
+      templateRegistry.register(name, fn),
+    /**
+     * 根据模板创建图层列表
+     * @param name 模板名称
+     * @param data 模板数据
+     * @param offset 坐标偏移
+     */
+    createFromTemplate: <T extends TemplateData>(
+      name: string,
+      data?: T,
+      offset?: { x?: number; y?: number },
+    ) => templateRegistry.create(name, data, offset),
     resource: resourceManager,
     stats,
     /** Canvas 元素 */

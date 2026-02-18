@@ -13,6 +13,7 @@ class MockContext {
   translate = jest.fn();
   rotate = jest.fn();
   beginPath = jest.fn();
+  closePath = jest.fn();
   moveTo = jest.fn();
   lineTo = jest.fn();
   stroke = jest.fn();
@@ -20,7 +21,9 @@ class MockContext {
   clip = jest.fn();
   rect = jest.fn();
   arc = jest.fn();
-  strokeRect = jest.fn(); // Added missing method
+  strokeRect = jest.fn();
+  fillText = jest.fn();
+  setLineDash = jest.fn();
 }
 
 // Global mock for CanvasRenderingContext2D
