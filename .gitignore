@@ -1,5 +1,7 @@
 **/node_modules
 yarn-error.log
+pnpm-debug.log
 .DS_Store
 /.docz
 /packages/server/**/dist
+/packages/core/dist

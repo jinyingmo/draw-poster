@@ -3,11 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "bootstrap": "lerna bootstrap",
-    "clean": "rm -rf node_modules/ && lerna clean -y",
-    "dev": "lerna run --stream --sort dev",
-    "build": "lerna run --stream --sort build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "clean": "pnpm -r --if-present clean",
+    "dev": "pnpm -r --stream dev",
+    "build": "pnpm -r --stream build",
+    "lint": "pnpm -r --if-present lint",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test"
   },
   "repository": {
     "type": "git",
@@ -17,6 +18,7 @@
   "author": "",
   "license": "MIT",
   "private": true,
+  "packageManager": "pnpm@7.33.6",
   "workspaces": [
     "packages/*"
   ],
@@ -24,7 +26,5 @@
     "url": "https://github.com/jinyingmo/draw-poster/issues"
   },
   "homepage": "https://github.com/jinyingmo/draw-poster#readme",
-  "devDependencies": {
-    "lerna": "^4.0.0"
-  }
+  "devDependencies": {}
 }

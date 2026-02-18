@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "esnext",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -20,10 +16,10 @@
     "noEmit": true,
     "experimentalDecorators": true,
     "noImplicitAny": false,
-    "declaration": true,
-    "removeComments": false,
+    "declaration": false,
+    "removeComments": false
   },
   "include": [
-    "packages/client/src"
+    "src"
   ]
 }

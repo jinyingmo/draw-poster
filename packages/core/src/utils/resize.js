@@ -1,23 +1,32 @@
 // 将图片处理成固定大小，并添加
-function drawImageProp(ctx, img, x = 0, y = 0, w = ctx.canvas.width, h = ctx.canvas.height) {
-  if (offsetX < 0) offsetX = 0
-  if (offsetY < 0) offsetY = 0
-  if (offsetX > 1) offsetX = 1
-  if (offsetY > 1) offsetY = 1
+function drawImageProp(
+  ctx,
+  img,
+  x = 0,
+  y = 0,
+  w = ctx.canvas.width,
+  h = ctx.canvas.height,
+  offsetX = 0.5,
+  offsetY = 0.5,
+) {
+  if (offsetX < 0) offsetX = 0;
+  if (offsetY < 0) offsetY = 0;
+  if (offsetX > 1) offsetX = 1;
+  if (offsetY > 1) offsetY = 1;
 
-  const iw = img.width
-  const ih = img.height
-  
+  const iw = img.width;
+  const ih = img.height;
+
   // 将要渲染的内容区域缩放，并使图片居中
-  const r = Math.min(iw / w, ih / h)
+  const r = Math.min(iw / w, ih / h);
 
-  const cw = r * w
-  const ch = r * h
+  const cw = r * w;
+  const ch = r * h;
 
-  cx = (iw - cw) * 0.5 // 宽度差的一半作为起始横坐标
-  cy = (ih - ch) * 0.5 // 高度差的一半作为起始纵坐标
+  const cx = (iw - cw) * offsetX;
+  const cy = (ih - ch) * offsetY;
 
-  ctx.drawImage(img, cx, cy, cw, ch,  x, y, w, h)
+  ctx.drawImage(img, cx, cy, cw, ch, x, y, w, h);
 }
 
 export default function resizeImage(img, w, h, radius) {
@@ -82,4 +91,3 @@ export default function resizeImage(img, w, h, radius) {
     resolve(imgData)
   })
 }
-
