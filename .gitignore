@@ -8,3 +8,5 @@ pnpm-debug.log
 storybook-static
 
 .claude
+
+**/config/index.ts

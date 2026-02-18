@@ -1,6 +1,7 @@
 import { ResourceManager } from "../utils/resource";
 import type { DebugOptions } from "./debug";
 import type { TemplateFn, TemplateData } from "./template";
+export type { TemplateFn, TemplateData };
 
 /**
  * 渐变颜色停止点

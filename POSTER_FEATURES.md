@@ -22,6 +22,19 @@
 - **模板化渲染**：`TemplateRegistry` 支持注册/注销可复用图层模板（`TemplateFn`），通过 `createFromTemplate` 实例化并可施加坐标偏移
 - **复杂文本排版**：竖排文本（`direction: 'vertical'`）、弧线路径文字（`drawTextOnArc`）、描边增强（`strokeColor`/`strokeWidth` 快捷属性）、横排字距精确控制（按字符逐一绘制）
 
+## 已实现（平台）
+
+- **Next.js 前端骨架**：packages/client 创建完成，支持 TypeScript 与 App Router
+- **Kimi 接入**：后端路由封装 Kimi Chat Completions，请求安全落在服务端
+- **四步流程 UI**：输入描述 → AI 输出 JSON → 画布渲染 → 手动编辑图层
+- **JSON 编辑**：支持原始 JSON 粘贴与应用到画布
+
 ## 待实现
 
 （暂无待实现项）
+
+## 待实现（平台）
+
+- **图层编辑增强**：支持更多属性（对齐、旋转、透明度、滤镜）
+- **素材管理**：图片上传与素材库接入
+- **模板保存**：保存与加载用户自定义模板
