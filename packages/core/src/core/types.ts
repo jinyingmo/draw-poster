@@ -1,3 +1,5 @@
+import { ResourceManager } from "../utils/resource";
+
 /**
  * 渐变颜色停止点
  */
@@ -94,6 +96,10 @@ export type StyleOptions = {
   shadowOffsetY?: number;
   /** 全局透明度 */
   globalAlpha?: number;
+  /** 合成操作 (混合模式) */
+  globalCompositeOperation?: GlobalCompositeOperation;
+  /** 滤镜 (例如 "blur(5px)") */
+  filter?: string;
 };
 
 /**
@@ -196,7 +202,34 @@ export type TextOptions = StyleOptions & {
   color?: string;
   /** 是否描边文本 */
   strokeText?: boolean;
+  /** 字距 */
+  letterSpacing?: number;
 };
+
+/**
+ * 文本片段
+ */
+export interface TextSpan
+  extends Omit<
+    TextOptions,
+    | "x"
+    | "y"
+    | "maxWidth"
+    | "maxLines"
+    | "lineHeight"
+    | "textAlign"
+    | "textBaseline"
+  > {
+  text: string;
+}
+
+/**
+ * 富文本绘制配置
+ */
+export interface RichTextOptions extends TextOptions {
+  /** 文本片段数组 (替代 text) */
+  spans: TextSpan[];
+}
 
 /**
  * 图片裁剪配置
@@ -229,11 +262,13 @@ export type ImageOptions = StyleOptions & {
   /** 裁剪配置 */
   crop?: ImageCropOptions;
   /** 圆角半径 */
-  radius?: number;
+  radius?: number | [number, number, number, number];
   /** 旋转角度 */
   rotate?: number;
   /** 图片填充模式 */
   objectFit?: "contain" | "cover" | "fill";
+  /** 九宫格拉伸配置 [top, right, bottom, left] */
+  scale9Grid?: [number, number, number, number];
 };
 
 /**
@@ -275,6 +310,8 @@ export interface BaseLayer {
   visible?: boolean;
   /** 是否锁定 */
   locked?: boolean;
+  /** 蒙版图层 (仅用于定义裁剪区域) */
+  mask?: Layer;
 }
 
 /**
@@ -310,13 +347,36 @@ export interface PolygonLayer extends BaseLayer, PolygonOptions {
  */
 export interface TextLayer extends BaseLayer, TextOptions {
   type: "text";
+  /** 文本片段数组 */
+  spans?: TextSpan[];
 }
 
 /**
  * 图片图层
  */
-export interface ImageLayer extends BaseLayer, ImageOptions {
+export interface ImageLayer extends BaseLayer {
   type: "image";
+  /** 图片源 */
+  image: CanvasImageSource | string;
+  /** X 坐标 */
+  x: number;
+  /** Y 坐标 */
+  y: number;
+  /** 宽度 */
+  width: number;
+  /** 高度 */
+  height: number;
+  /** 圆角半径 */
+  radius?: number | [number, number, number, number];
+  /** 裁剪区域 */
+  crop?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+  /** 九宫格拉伸配置 [top, right, bottom, left] */
+  scale9Grid?: [number, number, number, number];
 }
 
 /**
@@ -346,18 +406,18 @@ export interface DrawPosterPlugin {
   name: string;
   /** 绘制前钩子 */
   beforeDraw?: (
-    ctx: CanvasRenderingContext2D,
+    ctx: CanvasContext,
     layers: Layer[],
     options: DrawPosterOptions,
   ) => void;
   /** 绘制后钩子 */
   afterDraw?: (
-    ctx: CanvasRenderingContext2D,
+    ctx: CanvasContext,
     layers: Layer[],
     options: DrawPosterOptions,
   ) => void;
   /** 初始化钩子 */
-  onInit?: (ctx: CanvasRenderingContext2D, options: DrawPosterOptions) => void;
+  onInit?: (ctx: CanvasContext, options: DrawPosterOptions) => void;
 }
 
 /**
@@ -370,16 +430,41 @@ export type DrawPosterOptions = {
   plugins?: DrawPosterPlugin[];
   /** 调试模式 */
   debug?: boolean;
+  /** 资源管理器 */
+  resourceManager?: ResourceManager;
 };
+
+/**
+ * 性能统计
+ */
+export type PerformanceStats = {
+  /** 渲染耗时 (ms) */
+  renderTime: number;
+  /** 资源加载耗时 (ms) */
+  loadTime: number;
+  /** 图层数量 */
+  layerCount: number;
+};
+
+/**
+ * Canvas 上下文类型
+ */
+export type CanvasContext =
+  | CanvasRenderingContext2D
+  | OffscreenCanvasRenderingContext2D;
 
 /**
  * DrawPoster 实例接口
  */
 export interface DrawPoster {
   /** Canvas 元素 */
-  canvas: HTMLCanvasElement;
+  canvas: HTMLCanvasElement | OffscreenCanvas;
   /** 绘图上下文 */
-  ctx: CanvasRenderingContext2D;
+  ctx: CanvasContext;
+  /** 资源管理器 */
+  resource: ResourceManager;
+  /** 性能统计 */
+  stats: PerformanceStats;
 
   // Helpers
   /** 数值缩放工具 */

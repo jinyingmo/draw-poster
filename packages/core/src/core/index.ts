@@ -1,4 +1,4 @@
-import type { DrawPoster, DrawPosterOptions } from "./types";
+import type { DrawPoster, DrawPosterOptions, CanvasContext } from "./types";
 import { createDrawPoster as createDrawPosterCore } from "./drawPoster";
 
 /**
@@ -8,8 +8,10 @@ import { createDrawPoster as createDrawPosterCore } from "./drawPoster";
  * @returns DrawPoster 实例
  */
 export const createDrawPoster = (
-  ctx: CanvasRenderingContext2D,
+  ctx: CanvasContext,
   options: DrawPosterOptions = {},
 ): DrawPoster => createDrawPosterCore(ctx, options);
 
 export * from "./types";
+export * from "../utils/font";
+export * from "../utils/resource";

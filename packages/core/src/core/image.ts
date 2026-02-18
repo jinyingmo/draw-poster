@@ -1,6 +1,6 @@
 import { scaleValue, withContext } from "./canvas";
 import { clipRoundedRect } from "./shapes";
-import type { ImageOptions } from "./types";
+import type { ImageOptions, CanvasContext } from "./types";
 import { loadImage } from "../utils/imgUtils";
 
 /**
@@ -22,7 +22,7 @@ const resolveImage = async (source: string | HTMLImageElement) => {
  * @param ratio 缩放比例
  */
 export const drawImage = async (
-  ctx: CanvasRenderingContext2D,
+  ctx: CanvasContext,
   options: ImageOptions,
   ratio = 1,
 ) => {
@@ -45,7 +45,47 @@ export const drawImage = async (
     if (radius) {
       clipRoundedRect(ctx, x, y, width, height, radius, ratio);
     }
-    if (crop) {
+    const { scale9Grid } = options;
+    if (scale9Grid) {
+      const [top, right, bottom, left] = scale9Grid;
+      const imgWidth = img.width as number;
+      const imgHeight = img.height as number;
+
+      // 源图像区域划分
+      const sX = [0, left, imgWidth - right];
+      const sY = [0, top, imgHeight - bottom];
+      const sW = [left, imgWidth - left - right, right];
+      const sH = [top, imgHeight - top - bottom, bottom];
+
+      // 目标区域划分（应用缩放比例）
+      const dLeft = scaleValue(left, ratio);
+      const dRight = scaleValue(right, ratio);
+      const dTop = scaleValue(top, ratio);
+      const dBottom = scaleValue(bottom, ratio);
+
+      const dX = [targetX, targetX + dLeft, targetX + targetWidth - dRight];
+      const dY = [targetY, targetY + dTop, targetY + targetHeight - dBottom];
+      const dW = [dLeft, Math.max(0, targetWidth - dLeft - dRight), dRight];
+      const dH = [dTop, Math.max(0, targetHeight - dTop - dBottom), dBottom];
+
+      for (let row = 0; row < 3; row++) {
+        for (let col = 0; col < 3; col++) {
+          if (sW[col] > 0 && sH[row] > 0 && dW[col] > 0 && dH[row] > 0) {
+            ctx.drawImage(
+              img,
+              sX[col],
+              sY[row],
+              sW[col],
+              sH[row],
+              dX[col],
+              dY[row],
+              dW[col],
+              dH[row],
+            );
+          }
+        }
+      }
+    } else if (crop) {
       ctx.drawImage(
         img,
         scaleValue(crop.sx, ratio),

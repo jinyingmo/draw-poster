@@ -1,7 +1,7 @@
 import QRCode from "qrcode";
 import { scaleValue, withContext } from "./canvas";
 import { loadImage } from "../utils/imgUtils";
-import type { QRCodeOptions } from "./types";
+import type { QRCodeOptions, CanvasContext } from "./types";
 
 /**
  * 绘制二维码
@@ -10,7 +10,7 @@ import type { QRCodeOptions } from "./types";
  * @param ratio 缩放比例
  */
 export const drawQRCode = async (
-  ctx: CanvasRenderingContext2D,
+  ctx: CanvasContext,
   options: QRCodeOptions,
   ratio = 1,
 ) => {

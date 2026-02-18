@@ -1,5 +1,5 @@
 import { createDrawPoster } from './core'
-import type { DrawPoster, DrawPosterOptions } from './core'
+import type { DrawPoster, DrawPosterOptions, CanvasContext } from "./core";
 
 /**
  * 创建 DrawPoster 实例 (默认导出)
@@ -7,7 +7,12 @@ import type { DrawPoster, DrawPosterOptions } from './core'
  * @param options 配置选项
  * @returns DrawPoster 实例
  */
-export default function create(ctx: CanvasRenderingContext2D, options: DrawPosterOptions = {}): DrawPoster {
-  const drawPoster = createDrawPoster(ctx, options)
-  return drawPoster
+export default function create(
+  ctx: CanvasContext,
+  options: DrawPosterOptions = {},
+): DrawPoster {
+  const drawPoster = createDrawPoster(ctx, options);
+  return drawPoster;
 }
+
+export * from "./core";

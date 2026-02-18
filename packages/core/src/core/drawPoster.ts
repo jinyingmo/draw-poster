@@ -1,4 +1,5 @@
 import { loadImage, getImageData } from '../utils/imgUtils'
+import { ResourceManager } from "../utils/resource";
 import resizeImage from '../utils/resize'
 import { contextWrapText } from '../utils/textUtils'
 import {
@@ -11,7 +12,14 @@ import { getLayerBounds, moveLayer } from "./layout";
 import { exportBlob, exportDataURL, exportImageData } from "./export";
 import { drawImage } from "./image";
 import { drawQRCode } from "./qrcode";
-import { drawCircle, drawLine, drawPolygon, drawRect } from "./shapes";
+import { drawRichText } from "./richText";
+import {
+  drawCircle,
+  drawLine,
+  drawPolygon,
+  drawRect,
+  createLayerPath,
+} from "./shapes";
 import { drawText } from "./text";
 import type {
   CircleLayer,
@@ -32,6 +40,8 @@ import type {
   TextLayer,
   TextOptions,
   TransformOptions,
+  PerformanceStats,
+  CanvasContext,
 } from "./types";
 
 /**
@@ -41,13 +51,20 @@ import type {
  * @returns DrawPoster 实例
  */
 export const createDrawPoster = (
-  ctx: CanvasRenderingContext2D,
+  ctx: CanvasContext,
   options: DrawPosterOptions = {},
 ) => {
   if (!ctx) {
     throw new Error("Canvas context is required!");
   }
   const { ratio = 1, debug = false } = options;
+  const resourceManager = options.resourceManager || new ResourceManager();
+  const stats: PerformanceStats = {
+    renderTime: 0,
+    loadTime: 0,
+    layerCount: 0,
+  };
+
   contextWrapText();
 
   const layers: Layer[] = [];
@@ -65,7 +82,15 @@ export const createDrawPoster = (
     if (!src || typeof src !== "string") {
       throw new Error("Image url is required and must be a string!");
     }
-    return loadImage(src);
+    const start = performance.now();
+    try {
+      const img = await resourceManager.load(src);
+      stats.loadTime += performance.now() - start;
+      return img;
+    } catch (e) {
+      stats.loadTime += performance.now() - start;
+      throw e;
+    }
   };
 
   /**
@@ -200,6 +225,9 @@ export const createDrawPoster = (
    * 渲染所有图层
    */
   const render = async () => {
+    const renderStart = performance.now();
+    stats.layerCount = layers.length;
+
     layers.sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
 
     for (const plugin of plugins) {
@@ -212,6 +240,13 @@ export const createDrawPoster = (
 
     for (const layer of layers) {
       if (layer.visible === false) continue;
+
+      const hasMask = !!layer.mask;
+      if (hasMask) {
+        ctx.save();
+        createLayerPath(ctx, layer.mask!, ratio);
+        ctx.clip();
+      }
 
       switch (layer.type) {
         case "rect":
@@ -226,15 +261,49 @@ export const createDrawPoster = (
         case "polygon":
           drawPolygon(ctx, layer as PolygonLayer, ratio);
           break;
-        case "text":
-          drawText(ctx, layer as TextLayer, ratio);
+        case "text": {
+          const textLayer = layer as TextLayer;
+          if (textLayer.spans) {
+            drawRichText(ctx, { ...textLayer, spans: textLayer.spans }, ratio);
+          } else {
+            drawText(ctx, textLayer, ratio);
+          }
           break;
-        case "image":
-          await drawImage(ctx, layer as ImageLayer, ratio);
+        }
+        case "image": {
+          const { image, crop, ...rest } = layer as ImageLayer;
+          // Use resourceManager to load image if it's a string
+          let imgSource = image;
+          if (typeof image === "string") {
+             const loadStart = performance.now();
+             try {
+               imgSource = await resourceManager.load(image);
+             } finally {
+               stats.loadTime += performance.now() - loadStart;
+             }
+          }
+          const options: ImageOptions = {
+            ...rest,
+            source: imgSource as string | HTMLImageElement,
+          };
+          if (crop) {
+            options.crop = {
+              sx: crop.x,
+              sy: crop.y,
+              sw: crop.width,
+              sh: crop.height,
+            };
+          }
+          await drawImage(ctx, options, ratio);
           break;
+        }
         case "qrcode":
           await drawQRCode(ctx, layer as QRCodeLayer, ratio);
           break;
+      }
+
+      if (hasMask) {
+        ctx.restore();
       }
     }
 
@@ -243,6 +312,8 @@ export const createDrawPoster = (
     for (const plugin of plugins) {
       plugin.afterDraw?.(ctx, layers, options);
     }
+
+    stats.renderTime = performance.now() - renderStart;
   };
 
   /**
@@ -523,6 +594,8 @@ export const createDrawPoster = (
       plugins.push(plugin);
       plugin.onInit?.(ctx, options);
     },
+    resource: resourceManager,
+    stats,
     /** Canvas 元素 */
     canvas: ctx.canvas,
     /** Canvas 上下文 */

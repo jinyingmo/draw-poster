@@ -4,6 +4,11 @@ import type {
   LineOptions,
   PolygonOptions,
   RectOptions,
+  Layer,
+  RectLayer,
+  CircleLayer,
+  PolygonLayer,
+  CanvasContext,
 } from "./types";
 
 /**
@@ -34,7 +39,7 @@ const normalizeRadius = (
  * @param radius 圆角半径数组
  */
 const buildRoundedRectPath = (
-  ctx: CanvasRenderingContext2D,
+  ctx: CanvasContext,
   x: number,
   y: number,
   width: number,
@@ -70,7 +75,7 @@ const buildRoundedRectPath = (
  * @param ratio 缩放比例
  */
 export const drawRect = (
-  ctx: CanvasRenderingContext2D,
+  ctx: CanvasContext,
   options: RectOptions,
   ratio = 1,
 ) => {
@@ -117,16 +122,78 @@ export const drawRect = (
 };
 
 /**
+ * 创建图层路径（用于裁剪或自定义绘制）
+ * @param ctx Canvas 上下文
+ * @param layer 图层
+ * @param ratio 缩放比例
+ */
+export const createLayerPath = (
+  ctx: CanvasContext,
+  layer: Layer,
+  ratio = 1,
+) => {
+  ctx.beginPath();
+  switch (layer.type) {
+    case "rect": {
+      const { x, y, width, height, radius } = layer as RectLayer;
+      const scaledRadius = normalizeRadius(radius).map(value =>
+        scaleValue(value, ratio),
+      ) as [number, number, number, number];
+
+      if (radius) {
+        buildRoundedRectPath(
+          ctx,
+          scaleValue(x, ratio),
+          scaleValue(y, ratio),
+          scaleValue(width, ratio),
+          scaleValue(height, ratio),
+          scaledRadius,
+        );
+      } else {
+        ctx.rect(
+          scaleValue(x, ratio),
+          scaleValue(y, ratio),
+          scaleValue(width, ratio),
+          scaleValue(height, ratio),
+        );
+      }
+      break;
+    }
+    case "circle": {
+      const { x, y, radius } = layer as CircleLayer;
+      ctx.arc(
+        scaleValue(x, ratio),
+        scaleValue(y, ratio),
+        scaleValue(radius, ratio),
+        0,
+        Math.PI * 2,
+      );
+      break;
+    }
+    case "polygon": {
+      const { points, closePath } = layer as PolygonLayer;
+      if (points.length > 0) {
+        const [first, ...rest] = points;
+        ctx.moveTo(scaleValue(first[0], ratio), scaleValue(first[1], ratio));
+        rest.forEach(p =>
+          ctx.lineTo(scaleValue(p[0], ratio), scaleValue(p[1], ratio)),
+        );
+        if (closePath !== false) {
+          ctx.closePath();
+        }
+      }
+      break;
+    }
+  }
+};
+
+/**
  * 绘制圆形
  * @param ctx Canvas 上下文
  * @param options 圆形配置
  * @param ratio 缩放比例
  */
-export const drawCircle = (
-  ctx: CanvasRenderingContext2D,
-  options: CircleOptions,
-  ratio = 1,
-) => {
+export const drawCircle = (ctx: CanvasContext, options: CircleOptions, ratio = 1) => {
   const { x, y, radius, ...styles } = options;
   const draw = () => {
     ctx.beginPath();
@@ -153,11 +220,7 @@ export const drawCircle = (
  * @param options 线条配置
  * @param ratio 缩放比例
  */
-export const drawLine = (
-  ctx: CanvasRenderingContext2D,
-  options: LineOptions,
-  ratio = 1,
-) => {
+export const drawLine = (ctx: CanvasContext, options: LineOptions, ratio = 1) => {
   const { x1, y1, x2, y2, ...styles } = options;
   const draw = () => {
     ctx.beginPath();
@@ -180,7 +243,7 @@ export const drawLine = (
  * @param ratio 缩放比例
  */
 export const drawPolygon = (
-  ctx: CanvasRenderingContext2D,
+  ctx: CanvasContext,
   options: PolygonOptions,
   ratio = 1,
 ) => {
@@ -220,7 +283,7 @@ export const drawPolygon = (
  * @param ratio 缩放比例
  */
 export const clipRoundedRect = (
-  ctx: CanvasRenderingContext2D,
+  ctx: CanvasContext,
   x: number,
   y: number,
   width: number,

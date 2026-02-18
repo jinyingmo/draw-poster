@@ -1,5 +1,5 @@
 import { scaleValue, withContext } from "./canvas";
-import type { TextOptions } from "./types";
+import type { TextOptions, CanvasContext } from "./types";
 
 /**
  * 构建字体字符串
@@ -7,7 +7,7 @@ import type { TextOptions } from "./types";
  * @param ratio 缩放比例
  * @returns 字体字符串
  */
-export const buildFont = (options: TextOptions, ratio: number) => {
+export const buildFont = (options: Partial<TextOptions>, ratio: number) => {
   const fontStyle = options.fontStyle || "normal";
   const fontWeight = options.fontWeight ? String(options.fontWeight) : "normal";
   const fontSize = options.fontSize
@@ -26,7 +26,7 @@ export const buildFont = (options: TextOptions, ratio: number) => {
  * @returns 分行后的文本数组
  */
 export const layoutLines = (
-  ctx: CanvasRenderingContext2D,
+  ctx: CanvasContext,
   text: string,
   maxWidth?: number,
   maxLines?: number,
@@ -77,11 +77,7 @@ export const layoutLines = (
  * @param ratio 缩放比例
  * @returns 绘制结果 { lineNumber: 行数 }
  */
-export const drawText = (
-  ctx: CanvasRenderingContext2D,
-  options: TextOptions,
-  ratio = 1,
-) => {
+export const drawText = (ctx: CanvasContext, options: TextOptions, ratio = 1) => {
   const {
     text,
     x,
