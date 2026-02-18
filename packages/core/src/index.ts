@@ -16,3 +16,5 @@ export default function create(
 }
 
 export * from "./core";
+export { createJsonTemplate } from "./utils/jsonTemplate";
+export type { JsonTemplateLayer } from "./utils/jsonTemplate";

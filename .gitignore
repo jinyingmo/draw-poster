@@ -6,3 +6,5 @@ pnpm-debug.log
 /packages/server/**/dist
 /packages/core/dist
 storybook-static
+
+.claude
