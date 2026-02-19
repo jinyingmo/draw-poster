@@ -13,7 +13,7 @@ export function createDefaultLayer(
   overrides?: Partial<Layer>,
 ): EditableLayer {
   const id = newId(type);
-  const zIndex = Date.now();
+  const zIndex = 0;
 
   let layer: Partial<Layer> = {};
 

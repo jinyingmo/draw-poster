@@ -46,9 +46,14 @@ function editorReducer(state: EditorState, action: EditorAction): EditorState {
       });
 
     case "ADD_LAYER":
+      const maxZ =
+        state.layers.length > 0
+          ? Math.max(...state.layers.map(l => l.zIndex || 0))
+          : 0;
+      const newLayer = { ...action.layer, zIndex: maxZ + 1 };
       return withHistory(state, {
-        layers: [...state.layers, action.layer],
-        selectedId: action.layer.id,
+        layers: [...state.layers, newLayer],
+        selectedId: newLayer.id,
       });
 
     case "UPDATE_LAYER":

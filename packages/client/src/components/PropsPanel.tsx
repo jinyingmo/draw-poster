@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { EditableLayer } from "../hooks/useEditorState";
 import { LAYER_TYPE_LABELS } from "../utils/layerDefaults";
 import styles from "./PropsPanel.module.css";
@@ -26,9 +26,22 @@ function LayerList({
 }: LayerListProps) {
   const dragIndexRef = useRef<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   // Display in reverse order (top-most layer first)
   const displayed = [...layers].reverse();
+
+  useEffect(() => {
+    if (selectedId && itemRefs.current[selectedId]) {
+      // Use setTimeout to ensure DOM is ready and layout is stable
+      setTimeout(() => {
+        itemRefs.current[selectedId]?.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+        });
+      }, 0);
+    }
+  }, [selectedId, layers]);
 
   return (
     <div className={styles.layerList}>
@@ -43,7 +56,12 @@ function LayerList({
         return (
           <div
             key={layer.id}
-            className={`${styles.layerItem} ${isSelected ? styles.layerItemActive : ""} ${dragOverIndex === dispIdx ? styles.layerItemDragOver : ""}`}
+            ref={el => {
+              itemRefs.current[layer.id] = el;
+            }}
+            className={`${styles.layerItem} ${
+              isSelected ? styles.layerItemActive : ""
+            } ${dragOverIndex === dispIdx ? styles.layerItemDragOver : ""}`}
             draggable
             onClick={() => onSelect(layer.id)}
             onDragStart={() => {
@@ -437,14 +455,55 @@ const extractJsonArray = (text: string) => {
   }
 };
 
-const ensureIds = (layers: EditableLayer[]): EditableLayer[] =>
-  layers.map((layer, i) => ({
+const estimateArea = (layer: EditableLayer): number => {
+  if (
+    layer.type === "rect" ||
+    layer.type === "image" ||
+    layer.type === "qrcode"
+  ) {
+    return (layer.width || 0) * (layer.height || 0);
+  }
+  if (layer.type === "circle") {
+    return Math.PI * (layer.radius || 0) ** 2;
+  }
+  if (layer.type === "text") {
+    const w = (layer.fontSize || 16) * 0.6 * (layer.text?.length || 1);
+    const h = (layer.fontSize || 16) * 1.2;
+    return w * h;
+  }
+  if (layer.type === "line") {
+    const dx = Math.abs((layer.x1 || 0) - (layer.x2 || 0));
+    const dy = Math.abs((layer.y1 || 0) - (layer.y2 || 0));
+    const len = Math.sqrt(dx * dx + dy * dy);
+    return len * (layer.lineWidth || 2);
+  }
+  if (layer.type === "polygon") {
+    if (!layer.points || layer.points.length === 0) return 0;
+    const xs = layer.points.map(p => p[0]);
+    const ys = layer.points.map(p => p[1]);
+    const w = Math.max(...xs) - Math.min(...xs);
+    const h = Math.max(...ys) - Math.min(...ys);
+    return w * h;
+  }
+  return 0;
+};
+
+const processAILayers = (layers: EditableLayer[]): EditableLayer[] => {
+  const withIds = layers.map((layer, i) => ({
     ...layer,
     id:
       typeof layer.id === "string" && layer.id.length > 0
         ? layer.id
-        : `layer-${i + 1}`,
+        : `layer-${Date.now()}-${i}`,
   }));
+
+  const sorted = withIds.sort((a, b) => estimateArea(b) - estimateArea(a));
+
+  return sorted.map((layer, i) => ({
+    ...layer,
+    zIndex: i + 1,
+  }));
+};
 
 interface AIGenerateProps {
   onSetLayers: (layers: EditableLayer[]) => void;
@@ -472,7 +531,7 @@ function AIGenerate({ onSetLayers }: AIGenerateProps) {
       const content = String(data?.content ?? "");
       const parsed = extractJsonArray(content);
       if (!parsed) throw new Error("未识别到可用的 JSON 图层数组");
-      const nextLayers = ensureIds(parsed as EditableLayer[]);
+      const nextLayers = processAILayers(parsed as EditableLayer[]);
       setRawJson(JSON.stringify(nextLayers, null, 2));
       onSetLayers(nextLayers);
     } catch (e) {
@@ -489,7 +548,7 @@ function AIGenerate({ onSetLayers }: AIGenerateProps) {
         setError("JSON 必须是数组");
         return;
       }
-      const nextLayers = ensureIds(parsed as EditableLayer[]);
+      const nextLayers = processAILayers(parsed as EditableLayer[]);
       onSetLayers(nextLayers);
       setError("");
     } catch {
