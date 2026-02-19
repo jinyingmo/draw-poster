@@ -93,6 +93,7 @@ export const drawText = (ctx: CanvasContext, options: TextOptions, ratio = 1) =>
     strokeWidth,
     direction,
     letterSpacing,
+    rotate,
     ...styles
   } = options;
 
@@ -116,6 +117,13 @@ export const drawText = (ctx: CanvasContext, options: TextOptions, ratio = 1) =>
     const spacing = letterSpacing ? scaleValue(letterSpacing, ratio) : 0;
 
     const draw = () => {
+      if (rotate) {
+        const rx = scaleValue(x, ratio);
+        const ry = scaleValue(y, ratio);
+        ctx.translate(rx, ry);
+        ctx.rotate(rotate);
+        ctx.translate(-rx, -ry);
+      }
       ctx.font = buildFont(options, ratio);
       if (textAlign) ctx.textAlign = textAlign;
       if (textBaseline) ctx.textBaseline = textBaseline;
@@ -152,6 +160,13 @@ export const drawText = (ctx: CanvasContext, options: TextOptions, ratio = 1) =>
       : scaleValue(19.2, ratio);
 
   const draw = () => {
+    if (rotate) {
+      const rx = scaleValue(x, ratio);
+      const ry = scaleValue(y, ratio);
+      ctx.translate(rx, ry);
+      ctx.rotate(rotate);
+      ctx.translate(-rx, -ry);
+    }
     ctx.font = buildFont(options, ratio);
     if (textAlign) {
       ctx.textAlign = textAlign;

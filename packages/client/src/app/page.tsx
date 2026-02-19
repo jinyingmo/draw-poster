@@ -19,8 +19,8 @@ export default function Home() {
   // ─── Actions ──────────────────────────────────────────────
 
   const addElement = useCallback(
-    (type: string) => {
-      const layer = createDefaultLayer(type);
+    (type: string, overrides?: Record<string, unknown>) => {
+      const layer = createDefaultLayer(type, overrides);
       dispatch({ type: "ADD_LAYER", layer });
     },
     [dispatch],
@@ -137,11 +137,19 @@ export default function Home() {
         const step = e.shiftKey ? 10 : 1;
         let dx = 0;
         let dy = 0;
-        if (e.key === "ArrowLeft") { e.preventDefault(); dx = -step; }
-        else if (e.key === "ArrowRight") { e.preventDefault(); dx = step; }
-        else if (e.key === "ArrowUp") { e.preventDefault(); dy = -step; }
-        else if (e.key === "ArrowDown") { e.preventDefault(); dy = step; }
-        else return;
+        if (e.key === "ArrowLeft") {
+          e.preventDefault();
+          dx = -step;
+        } else if (e.key === "ArrowRight") {
+          e.preventDefault();
+          dx = step;
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          dy = -step;
+        } else if (e.key === "ArrowDown") {
+          e.preventDefault();
+          dy = step;
+        } else return;
 
         if (dx === 0 && dy === 0) return;
 

@@ -8,13 +8,18 @@ function newId(type: string): string {
   return `${type}-${Date.now()}-${++_counter}`;
 }
 
-export function createDefaultLayer(type: string): EditableLayer {
+export function createDefaultLayer(
+  type: string,
+  overrides?: Partial<Layer>,
+): EditableLayer {
   const id = newId(type);
   const zIndex = Date.now();
 
+  let layer: Partial<Layer> = {};
+
   switch (type) {
     case "rect":
-      return {
+      layer = {
         type: "rect",
         id,
         zIndex,
@@ -23,10 +28,11 @@ export function createDefaultLayer(type: string): EditableLayer {
         width: 120,
         height: 80,
         fillStyle: "#3B82F6",
-      } as EditableLayer;
+      };
+      break;
 
     case "circle":
-      return {
+      layer = {
         type: "circle",
         id,
         zIndex,
@@ -34,10 +40,11 @@ export function createDefaultLayer(type: string): EditableLayer {
         y: 150,
         radius: 50,
         fillStyle: "#EF4444",
-      } as EditableLayer;
+      };
+      break;
 
     case "text":
-      return {
+      layer = {
         type: "text",
         id,
         zIndex,
@@ -46,10 +53,11 @@ export function createDefaultLayer(type: string): EditableLayer {
         text: "请输入文字",
         fontSize: 24,
         color: "#111827",
-      } as EditableLayer;
+      };
+      break;
 
     case "image":
-      return {
+      layer = {
         type: "image",
         id,
         zIndex,
@@ -58,10 +66,11 @@ export function createDefaultLayer(type: string): EditableLayer {
         width: 150,
         height: 150,
         image: "https://picsum.photos/150/150",
-      } as EditableLayer;
+      };
+      break;
 
     case "qrcode":
-      return {
+      layer = {
         type: "qrcode",
         id,
         zIndex,
@@ -70,10 +79,11 @@ export function createDefaultLayer(type: string): EditableLayer {
         width: 100,
         height: 100,
         text: "https://example.com",
-      } as EditableLayer;
+      };
+      break;
 
     case "line":
-      return {
+      layer = {
         type: "line",
         id,
         zIndex,
@@ -83,10 +93,11 @@ export function createDefaultLayer(type: string): EditableLayer {
         y2: 200,
         strokeStyle: "#111827",
         lineWidth: 2,
-      } as EditableLayer;
+      };
+      break;
 
     case "polygon":
-      return {
+      layer = {
         type: "polygon",
         id,
         zIndex,
@@ -98,20 +109,11 @@ export function createDefaultLayer(type: string): EditableLayer {
         ],
         fillStyle: "#8B5CF6",
         closePath: true,
-      } as EditableLayer;
-
-    default:
-      return {
-        type: "rect",
-        id,
-        zIndex,
-        x: 80,
-        y: 80,
-        width: 120,
-        height: 80,
-        fillStyle: "#6B7280",
-      } as EditableLayer;
+      };
+      break;
   }
+
+  return { ...layer, ...overrides } as EditableLayer;
 }
 
 export const LAYER_TYPE_LABELS: Record<string, string> = {

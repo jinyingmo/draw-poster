@@ -23,6 +23,7 @@ export const drawQRCode = async (
     errorCorrectionLevel,
     margin,
     color,
+    rotate,
     ...styles
   } = options;
 
@@ -36,6 +37,13 @@ export const drawQRCode = async (
     const img = await loadImage(url);
 
     const draw = () => {
+      if (rotate) {
+        const cx = scaleValue(x + width / 2, ratio);
+        const cy = scaleValue(y + height / 2, ratio);
+        ctx.translate(cx, cy);
+        ctx.rotate(rotate);
+        ctx.translate(-cx, -cy);
+      }
       ctx.drawImage(
         img,
         scaleValue(x, ratio),

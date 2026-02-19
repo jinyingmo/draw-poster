@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import styles from "./Toolbar.module.css";
 
 const ELEMENT_TOOLS = [
@@ -13,7 +14,7 @@ const ELEMENT_TOOLS = [
 ];
 
 interface ToolbarProps {
-  onAddElement: (type: string) => void;
+  onAddElement: (type: string, overrides?: Record<string, unknown>) => void;
   onUndo: () => void;
   onRedo: () => void;
   onDelete: () => void;
@@ -33,15 +34,58 @@ export default function Toolbar({
   canRedo,
   hasSelection,
 }: ToolbarProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = evt => {
+      const src = evt.target?.result as string;
+      const img = new Image();
+      img.onload = () => {
+        // limit initial size if too big
+        let w = img.width;
+        let h = img.height;
+        if (w > 300) {
+          const r = 300 / w;
+          w = 300;
+          h = h * r;
+        }
+        onAddElement("image", {
+          image: src,
+          width: w,
+          height: h,
+        });
+      };
+      img.src = src;
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
   return (
     <aside className={styles.toolbar}>
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: "none" }}
+        accept="image/*"
+        onChange={handleUpload}
+      />
       <div className={styles.toolGroup}>
         {ELEMENT_TOOLS.map(tool => (
           <button
             key={tool.type}
             className={styles.toolBtn}
             title={tool.label}
-            onClick={() => onAddElement(tool.type)}
+            onClick={() => {
+              if (tool.type === "image") {
+                fileInputRef.current?.click();
+              } else {
+                onAddElement(tool.type);
+              }
+            }}
           >
             <span className={styles.toolIcon}>{tool.icon}</span>
             <span className={styles.toolLabel}>{tool.label}</span>
@@ -79,11 +123,7 @@ export default function Toolbar({
           <span className={styles.toolIcon}>🗑</span>
           <span className={styles.toolLabel}>删除</span>
         </button>
-        <button
-          className={styles.toolBtn}
-          title="导出图片"
-          onClick={onExport}
-        >
+        <button className={styles.toolBtn} title="导出图片" onClick={onExport}>
           <span className={styles.toolIcon}>⬇</span>
           <span className={styles.toolLabel}>导出</span>
         </button>

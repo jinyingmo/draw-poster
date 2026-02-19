@@ -3,7 +3,7 @@ import { KIMI_CONFIG } from "@/config";
 import { loadSystemPrompt } from "@/prompts";
 
 export async function POST(request: Request) {
-  const { apiKey, baseUrl, model } = KIMI_CONFIG;
+  const { apiKey, baseUrl, model, temperature } = KIMI_CONFIG;
 
   if (!apiKey) {
     return NextResponse.json(
@@ -37,8 +37,7 @@ export async function POST(request: Request) {
         { role: "system", content: systemPrompt },
         { role: "user", content: prompt },
       ],
-      temperature: 0.6,
-      max_tokens: 1200,
+      temperature,
     }),
   });
 

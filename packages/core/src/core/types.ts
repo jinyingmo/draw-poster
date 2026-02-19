@@ -124,96 +124,101 @@ export type TransformOptions = {
 /**
  * 矩形绘制配置
  */
-export type RectOptions = StyleOptions & {
-  /** X 坐标 */
-  x: number;
-  /** Y 坐标 */
-  y: number;
-  /** 宽度 */
-  width: number;
-  /** 高度 */
-  height: number;
-  /** 圆角半径，支持数字或数组 [tl, tr, br, bl] */
-  radius?: number | [number, number, number, number];
-};
+export type RectOptions = StyleOptions &
+  TransformOptions & {
+    /** X 坐标 */
+    x: number;
+    /** Y 坐标 */
+    y: number;
+    /** 宽度 */
+    width: number;
+    /** 高度 */
+    height: number;
+    /** 圆角半径，支持数字或数组 [tl, tr, br, bl] */
+    radius?: number | [number, number, number, number];
+  };
 
 /**
  * 圆形绘制配置
  */
-export type CircleOptions = StyleOptions & {
-  /** 圆心 X 坐标 */
-  x: number;
-  /** 圆心 Y 坐标 */
-  y: number;
-  /** 半径 */
-  radius: number;
-};
+export type CircleOptions = StyleOptions &
+  TransformOptions & {
+    /** 圆心 X 坐标 */
+    x: number;
+    /** 圆心 Y 坐标 */
+    y: number;
+    /** 半径 */
+    radius: number;
+  };
 
 /**
  * 线条绘制配置
  */
-export type LineOptions = StyleOptions & {
-  /** 起点 X 坐标 */
-  x1: number;
-  /** 起点 Y 坐标 */
-  y1: number;
-  /** 终点 X 坐标 */
-  x2: number;
-  /** 终点 Y 坐标 */
-  y2: number;
-};
+export type LineOptions = StyleOptions &
+  TransformOptions & {
+    /** 起点 X 坐标 */
+    x1: number;
+    /** 起点 Y 坐标 */
+    y1: number;
+    /** 终点 X 坐标 */
+    x2: number;
+    /** 终点 Y 坐标 */
+    y2: number;
+  };
 
 /**
  * 多边形绘制配置
  */
-export type PolygonOptions = StyleOptions & {
-  /** 顶点坐标数组 */
-  points: Array<[number, number]>;
-  /** 是否闭合路径 */
-  closePath?: boolean;
-};
+export type PolygonOptions = StyleOptions &
+  TransformOptions & {
+    /** 顶点坐标数组 */
+    points: Array<[number, number]>;
+    /** 是否闭合路径 */
+    closePath?: boolean;
+  };
 
 /**
  * 文本绘制配置
  */
-export type TextOptions = StyleOptions & {
-  /** 文本内容 */
-  text: string;
-  /** X 坐标 */
-  x: number;
-  /** Y 坐标 */
-  y: number;
-  /** 最大宽度，超出自动换行 */
-  maxWidth?: number;
-  /** 行高 */
-  lineHeight?: number;
-  /** 最大行数，超出显示省略号 */
-  maxLines?: number;
-  /** 字体大小 */
-  fontSize?: number;
-  /** 字体族 */
-  fontFamily?: string;
-  /** 字体粗细 */
-  fontWeight?: string | number;
-  /** 字体样式 */
-  fontStyle?: string;
-  /** 文本对齐方式 */
-  textAlign?: CanvasTextAlign;
-  /** 文本基线 */
-  textBaseline?: CanvasTextBaseline;
-  /** 文本颜色 (简写，优先于 fillStyle) */
-  color?: string;
-  /** 是否描边文本 */
-  strokeText?: boolean;
-  /** 描边颜色（strokeText 为 true 时生效，优先于 strokeStyle） */
-  strokeColor?: string;
-  /** 描边宽度（strokeText 为 true 时生效，优先于 lineWidth） */
-  strokeWidth?: number;
-  /** 字距 */
-  letterSpacing?: number;
-  /** 文字排列方向 */
-  direction?: "horizontal" | "vertical";
-};
+export type TextOptions = StyleOptions &
+  TransformOptions & {
+    /** 文本内容 */
+    text: string;
+    /** X 坐标 */
+    x: number;
+    /** Y 坐标 */
+    y: number;
+    /** 最大宽度，超出自动换行 */
+    maxWidth?: number;
+    /** 行高 */
+    lineHeight?: number;
+    /** 最大行数，超出显示省略号 */
+    maxLines?: number;
+    /** 字体大小 */
+    fontSize?: number;
+    /** 字体族 */
+    fontFamily?: string;
+    /** 字体粗细 */
+    fontWeight?: string | number;
+    /** 字体样式 */
+    fontStyle?: string;
+    /** 文本对齐方式 */
+    textAlign?: CanvasTextAlign;
+    /** 文本基线 */
+    textBaseline?: CanvasTextBaseline;
+    /** 文本颜色 (简写，优先于 fillStyle) */
+    color?: string;
+    /** 是否描边文本 */
+    strokeText?: boolean;
+    /** 描边颜色（strokeText 为 true 时生效，优先于 strokeStyle） */
+    strokeColor?: string;
+    /** 描边宽度（strokeText 为 true 时生效，优先于 lineWidth） */
+    strokeWidth?: number;
+    /** 字距 */
+    letterSpacing?: number;
+    /** 文字排列方向 */
+    direction?: "horizontal" | "vertical";
+  };
 
 /**
  * 文本片段
@@ -283,29 +288,30 @@ export type ImageOptions = StyleOptions & {
 /**
  * 二维码绘制配置
  */
-export type QRCodeOptions = StyleOptions & {
-  /** 二维码内容 */
-  text: string;
-  /** X 坐标 */
-  x: number;
-  /** Y 坐标 */
-  y: number;
-  /** 宽度 */
-  width: number;
-  /** 高度 */
-  height: number;
-  /** 边距 */
-  margin?: number;
-  /** 容错等级 */
-  errorCorrectionLevel?: "L" | "M" | "Q" | "H";
-  /** 颜色配置 */
-  color?: {
-    /** 暗色 (前景色) */
-    dark?: string;
-    /** 亮色 (背景色) */
-    light?: string;
+export type QRCodeOptions = StyleOptions &
+  TransformOptions & {
+    /** 二维码内容 */
+    text: string;
+    /** X 坐标 */
+    x: number;
+    /** Y 坐标 */
+    y: number;
+    /** 宽度 */
+    width: number;
+    /** 高度 */
+    height: number;
+    /** 边距 */
+    margin?: number;
+    /** 容错等级 */
+    errorCorrectionLevel?: "L" | "M" | "Q" | "H";
+    /** 颜色配置 */
+    color?: {
+      /** 暗色 (前景色) */
+      dark?: string;
+      /** 亮色 (背景色) */
+      light?: string;
+    };
   };
-};
 
 /**
  * 图层基础接口
@@ -377,6 +383,8 @@ export interface ImageLayer extends BaseLayer {
   height: number;
   /** 圆角半径 */
   radius?: number | [number, number, number, number];
+  /** 旋转角度 */
+  rotate?: number;
   /** 裁剪区域 */
   crop?: {
     x: number;

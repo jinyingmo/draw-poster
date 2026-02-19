@@ -482,11 +482,15 @@ function AIGenerate({ onSetLayers }: AIGenerateProps) {
     }
   };
 
-  const handleApplyJson = () => {
+  const handleApply = () => {
     try {
       const parsed = JSON.parse(rawJson);
-      if (!Array.isArray(parsed)) { setError("JSON 必须是数组"); return; }
-      onSetLayers(ensureIds(parsed as EditableLayer[]));
+      if (!Array.isArray(parsed)) {
+        setError("JSON 必须是数组");
+        return;
+      }
+      const nextLayers = ensureIds(parsed as EditableLayer[]);
+      onSetLayers(nextLayers);
       setError("");
     } catch {
       setError("JSON 解析失败");
@@ -502,8 +506,8 @@ function AIGenerate({ onSetLayers }: AIGenerateProps) {
             <textarea
               className={styles.textarea}
               value={prompt}
-              rows={3}
               onChange={e => setPrompt(e.target.value)}
+              rows={3}
             />
           </Field>
           <button
@@ -525,8 +529,8 @@ function AIGenerate({ onSetLayers }: AIGenerateProps) {
                   onChange={e => setRawJson(e.target.value)}
                 />
               </Field>
-              <button className={styles.btnSecondary} onClick={handleApplyJson}>
-                应用 JSON
+              <button className={styles.btnSecondary} onClick={handleApply}>
+                应用到画布
               </button>
             </>
           )}
@@ -584,7 +588,8 @@ export default function PropsPanel({
       {selectedLayer && (
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
-            属性编辑 — {LAYER_TYPE_LABELS[selectedLayer.type] ?? selectedLayer.type}
+            属性编辑 —{" "}
+            {LAYER_TYPE_LABELS[selectedLayer.type] ?? selectedLayer.type}
           </div>
           <LayerEditor
             layer={selectedLayer}

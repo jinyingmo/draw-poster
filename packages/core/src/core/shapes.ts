@@ -79,11 +79,19 @@ export const drawRect = (
   options: RectOptions,
   ratio = 1,
 ) => {
-  const { x, y, width, height, radius, ...styles } = options;
+  const { x, y, width, height, radius, rotate, ...styles } = options;
   const scaledRadius = normalizeRadius(radius).map(value =>
     scaleValue(value, ratio),
   ) as [number, number, number, number];
   const draw = () => {
+    if (rotate) {
+      const cx = scaleValue(x + width / 2, ratio);
+      const cy = scaleValue(y + height / 2, ratio);
+      ctx.translate(cx, cy);
+      ctx.rotate(rotate);
+      ctx.translate(-cx, -cy);
+    }
+
     if (radius) {
       buildRoundedRectPath(
         ctx,
@@ -194,8 +202,16 @@ export const createLayerPath = (
  * @param ratio 缩放比例
  */
 export const drawCircle = (ctx: CanvasContext, options: CircleOptions, ratio = 1) => {
-  const { x, y, radius, ...styles } = options;
+  const { x, y, radius, rotate, ...styles } = options;
   const draw = () => {
+    if (rotate) {
+      const cx = scaleValue(x, ratio);
+      const cy = scaleValue(y, ratio);
+      ctx.translate(cx, cy);
+      ctx.rotate(rotate);
+      ctx.translate(-cx, -cy);
+    }
+
     ctx.beginPath();
     ctx.arc(
       scaleValue(x, ratio),

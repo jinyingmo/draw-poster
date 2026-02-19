@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { createDrawPoster } from "../../../core/src";
 import { getLayerBounds } from "../../../core/src/core/layout";
+import { getSnapLines, type SnapLine } from "../../../core/src/core/snap";
 import type { Layer } from "../../../core/src";
 import type { BoundingBox } from "../../../core/src/core/layout";
 import type { EditableLayer } from "../hooks/useEditorState";
@@ -14,13 +15,14 @@ import {
   getHandleCursor,
   type HandleType,
 } from "../utils/selectionRenderer";
+import Ruler from "./Ruler";
 import styles from "./CanvasStage.module.css";
 
 const CANVAS_W = 375;
 const CANVAS_H = 667;
 
 interface DragState {
-  type: "move" | "resize";
+  type: "move" | "resize" | "rotate";
   layerId: string;
   mouseStartX: number;
   mouseStartY: number;
@@ -37,7 +39,10 @@ function getMovePatch(
 ): Record<string, unknown> {
   const t = initialProps.type as string;
   if (["rect", "image", "qrcode", "text", "circle"].includes(t)) {
-    return { x: (initialProps.x as number) + dx, y: (initialProps.y as number) + dy };
+    return {
+      x: (initialProps.x as number) + dx,
+      y: (initialProps.y as number) + dy,
+    };
   }
   if (t === "line") {
     return {
@@ -67,14 +72,40 @@ function getResizePatch(
   let { x: nx, y: ny, width: nw, height: nh } = startBounds;
 
   switch (handle) {
-    case "nw": nx += dx; ny += dy; nw -= dx; nh -= dy; break;
-    case "n":  ny += dy; nh -= dy; break;
-    case "ne": ny += dy; nw += dx; nh -= dy; break;
-    case "e":  nw += dx; break;
-    case "se": nw += dx; nh += dy; break;
-    case "s":  nh += dy; break;
-    case "sw": nx += dx; nw -= dx; nh += dy; break;
-    case "w":  nx += dx; nw -= dx; break;
+    case "nw":
+      nx += dx;
+      ny += dy;
+      nw -= dx;
+      nh -= dy;
+      break;
+    case "n":
+      ny += dy;
+      nh -= dy;
+      break;
+    case "ne":
+      ny += dy;
+      nw += dx;
+      nh -= dy;
+      break;
+    case "e":
+      nw += dx;
+      break;
+    case "se":
+      nw += dx;
+      nh += dy;
+      break;
+    case "s":
+      nh += dy;
+      break;
+    case "sw":
+      nx += dx;
+      nw -= dx;
+      nh += dy;
+      break;
+    case "w":
+      nx += dx;
+      nw -= dx;
+      break;
   }
 
   nw = Math.max(10, nw);
@@ -88,6 +119,24 @@ function getResizePatch(
     return { x: nx, y: ny, maxWidth: nw };
   }
   return { x: nx, y: ny, width: nw, height: nh };
+}
+
+function getRotatePatch(
+  startBounds: BoundingBox,
+  startX: number,
+  startY: number,
+  curX: number,
+  curY: number,
+  initialRotate: number = 0,
+): Record<string, unknown> {
+  const cx = startBounds.x + startBounds.width / 2;
+  const cy = startBounds.y + startBounds.height / 2;
+
+  const startAngle = Math.atan2(startY - cy, startX - cx);
+  const curAngle = Math.atan2(curY - cy, curX - cx);
+  const delta = curAngle - startAngle;
+
+  return { rotate: initialRotate + delta };
 }
 
 interface CanvasStageProps {
@@ -110,6 +159,7 @@ export default function CanvasStage({
   const posterRef = useRef<ReturnType<typeof createDrawPoster> | null>(null);
   const [dragState, setDragState] = useState<DragState | null>(null);
   const dragStateRef = useRef<DragState | null>(null);
+  const [snapLines, setSnapLines] = useState<SnapLine[]>([]);
 
   // Keep dragStateRef in sync with dragState
   useEffect(() => {
@@ -131,7 +181,6 @@ export default function CanvasStage({
     if (!poster) return;
 
     // Sync layers — snapshot first to avoid mutation-during-iteration bug
-    // (getLayers() returns the internal array reference; removeLayer() calls splice on it)
     const existingLayers = [...poster.getLayers()];
     existingLayers.forEach(l => {
       if (l.id) poster.removeLayer(l.id);
@@ -141,21 +190,44 @@ export default function CanvasStage({
       // After render, update overlay
       const overlayCtx = overlayCanvasRef.current?.getContext("2d");
       if (!overlayCtx) return;
+
+      clearSelection(overlayCtx);
+
+      // Draw snap lines
+      if (snapLines.length > 0) {
+        overlayCtx.save();
+        overlayCtx.strokeStyle = "#ff0000";
+        overlayCtx.lineWidth = 1;
+        snapLines.forEach(line => {
+          overlayCtx.beginPath();
+          if (line.type === "vertical") {
+            overlayCtx.moveTo(line.position, line.min);
+            overlayCtx.lineTo(line.position, line.max);
+          } else {
+            overlayCtx.moveTo(line.min, line.position);
+            overlayCtx.lineTo(line.max, line.position);
+          }
+          overlayCtx.stroke();
+        });
+        overlayCtx.restore();
+      }
+
       if (!selectedId) {
-        clearSelection(overlayCtx);
         return;
       }
       const selectedLayer = layers.find(l => l.id === selectedId);
       if (!selectedLayer) {
-        clearSelection(overlayCtx);
         return;
       }
       const renderCtx = renderCanvasRef.current?.getContext("2d");
       if (!renderCtx) return;
-      const bounds = getLayerBounds(renderCtx, selectedLayer as unknown as Layer);
+      const bounds = getLayerBounds(
+        renderCtx,
+        selectedLayer as unknown as Layer,
+      );
       drawSelection(overlayCtx, bounds);
     });
-  }, [layers, selectedId]);
+  }, [layers, selectedId, snapLines]);
 
   const getOverlayCtx = useCallback(() => {
     return overlayCanvasRef.current?.getContext("2d") ?? null;
@@ -177,11 +249,14 @@ export default function CanvasStage({
       if (selectedId) {
         const selectedLayer = layers.find(l => l.id === selectedId);
         if (selectedLayer) {
-          const bounds = getLayerBounds(renderCtx, selectedLayer as unknown as Layer);
+          const bounds = getLayerBounds(
+            renderCtx,
+            selectedLayer as unknown as Layer,
+          );
           const handle = getHandleAtPoint(bounds, x, y);
           if (handle) {
             setDragState({
-              type: "resize",
+              type: handle === "rot" ? "rotate" : "resize",
               layerId: selectedId,
               mouseStartX: x,
               mouseStartY: y,
@@ -203,7 +278,10 @@ export default function CanvasStage({
         }
         const hitLayer = layers.find(l => l.id === hitId);
         if (hitLayer) {
-          const bounds = getLayerBounds(renderCtx, hitLayer as unknown as Layer);
+          const bounds = getLayerBounds(
+            renderCtx,
+            hitLayer as unknown as Layer,
+          );
           setDragState({
             type: "move",
             layerId: hitId,
@@ -236,7 +314,10 @@ export default function CanvasStage({
         if (selectedId) {
           const selectedLayer = layers.find(l => l.id === selectedId);
           if (selectedLayer) {
-            const bounds = getLayerBounds(renderCtx, selectedLayer as unknown as Layer);
+            const bounds = getLayerBounds(
+              renderCtx,
+              selectedLayer as unknown as Layer,
+            );
             const handle = getHandleAtPoint(bounds, x, y);
             if (handle) {
               overlayCanvas.style.cursor = getHandleCursor(handle);
@@ -255,7 +336,39 @@ export default function CanvasStage({
 
       let patch: Record<string, unknown>;
       if (ds.type === "move") {
-        patch = getMovePatch(ds.initialProps, dx, dy);
+        // Apply snapping
+        let snapDx = 0;
+        let snapDy = 0;
+        
+        // Calculate theoretical new position without snap
+        const currentBounds = {
+           ...ds.startBounds,
+           x: ds.startBounds.x + dx,
+           y: ds.startBounds.y + dy,
+        };
+        
+        const renderCtx = getRenderCtx();
+        if (renderCtx) {
+           const otherLayers = layers.filter(l => l.id !== ds.layerId);
+           const otherBounds = otherLayers.map(l => getLayerBounds(renderCtx, l as unknown as Layer));
+           
+           const snapResult = getSnapLines(currentBounds, otherBounds);
+           snapDx = snapResult.dx;
+           snapDy = snapResult.dy;
+           setSnapLines(snapResult.lines);
+        }
+
+        patch = getMovePatch(ds.initialProps, dx + snapDx, dy + snapDy);
+      } else if (ds.type === "rotate") {
+        patch = getRotatePatch(
+          ds.startBounds,
+          ds.mouseStartX,
+          ds.mouseStartY,
+          x,
+          y,
+          (ds.initialProps.rotate as number) || 0,
+        );
+        setSnapLines([]);
       } else {
         patch = getResizePatch(
           ds.initialProps.type as string,
@@ -264,6 +377,7 @@ export default function CanvasStage({
           dx,
           dy,
         );
+        setSnapLines([]);
       }
 
       if (Object.keys(patch).length > 0) {
@@ -280,6 +394,7 @@ export default function CanvasStage({
       onCommitHistory();
     }
     setDragState(null);
+    setSnapLines([]);
     if (overlayCanvasRef.current) {
       overlayCanvasRef.current.style.cursor = "default";
     }
@@ -291,6 +406,7 @@ export default function CanvasStage({
       onCommitHistory();
     }
     setDragState(null);
+    setSnapLines([]);
     if (overlayCanvasRef.current) {
       overlayCanvasRef.current.style.cursor = "default";
     }
@@ -299,23 +415,47 @@ export default function CanvasStage({
   return (
     <div className={styles.stageArea}>
       <div className={styles.canvasWrapper}>
-        <div className={styles.canvasContainer}>
-          <canvas
-            ref={renderCanvasRef}
-            width={CANVAS_W}
-            height={CANVAS_H}
-            className={styles.renderCanvas}
-          />
-          <canvas
-            ref={overlayCanvasRef}
-            width={CANVAS_W}
-            height={CANVAS_H}
-            className={styles.overlayCanvas}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseLeave}
-          />
+        <div style={{ position: "relative", paddingLeft: 20, paddingTop: 20 }}>
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 20,
+              width: CANVAS_W,
+              height: 20,
+            }}
+          >
+            <Ruler length={CANVAS_W} orientation="horizontal" />
+          </div>
+          <div
+            style={{
+              position: "absolute",
+              top: 20,
+              left: 0,
+              width: 20,
+              height: CANVAS_H,
+            }}
+          >
+            <Ruler length={CANVAS_H} orientation="vertical" />
+          </div>
+          <div className={styles.canvasContainer}>
+            <canvas
+              ref={renderCanvasRef}
+              width={CANVAS_W}
+              height={CANVAS_H}
+              className={styles.renderCanvas}
+            />
+            <canvas
+              ref={overlayCanvasRef}
+              width={CANVAS_W}
+              height={CANVAS_H}
+              className={styles.overlayCanvas}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseLeave}
+            />
+          </div>
         </div>
         <div className={styles.canvasInfo}>
           画布尺寸：{CANVAS_W} × {CANVAS_H}

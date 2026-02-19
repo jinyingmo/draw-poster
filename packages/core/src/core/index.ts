@@ -18,3 +18,5 @@ export * from "./template";
 export { drawTextOnArc } from "./text";
 export * from "../utils/font";
 export * from "../utils/resource";
+export * from "./layout";
+export * from "./snap";
