@@ -1,177 +1,44 @@
 .page {
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
   background: #f5f6fa;
   color: #111827;
   font-family: var(--font-geist-sans);
+  overflow: hidden;
 }
 
 .header {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 28px 32px 20px;
+  gap: 4px;
+  padding: 12px 20px;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
 }
 
 .title {
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 700;
+  color: #111827;
 }
 
 .subtitle {
   color: #6b7280;
-  font-size: 14px;
+  font-size: 12px;
 }
 
-.main {
+.editorShell {
+  flex: 1;
   display: grid;
-  grid-template-columns: minmax(320px, 420px) minmax(520px, 1fr);
-  gap: 20px;
-  padding: 0 32px 32px;
-}
-
-.panel {
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  grid-template-columns: 72px 1fr 300px;
+  overflow: hidden;
   min-height: 0;
 }
 
-.step {
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.stepTitle {
-  font-size: 13px;
-  font-weight: 600;
-  color: #374151;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.textarea {
-  width: 100%;
-  min-height: 120px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  padding: 10px 12px;
-  font-size: 13px;
-  resize: vertical;
-}
-
-.input {
-  width: 100%;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  padding: 8px 10px;
-  font-size: 13px;
-}
-
-.row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.buttonRow {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.buttonPrimary {
-  border: none;
-  background: #2563eb;
-  color: #fff;
-  padding: 8px 14px;
-  border-radius: 8px;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.buttonSecondary {
-  border: 1px solid #d1d5db;
-  background: #fff;
-  color: #111827;
-  padding: 8px 14px;
-  border-radius: 8px;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.status {
-  font-size: 12px;
-  color: #ef4444;
-}
-
-.canvasWrap {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.canvas {
-  width: 100%;
-  max-width: 420px;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  background: #fff;
-}
-
-.layersList {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  max-height: 260px;
-  overflow: auto;
-}
-
-.layerItem {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.layerItemActive {
-  border-color: #2563eb;
-  background: #eff6ff;
-}
-
-.editorGrid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.jsonBox {
-  width: 100%;
-  min-height: 160px;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  padding: 10px 12px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-    "Courier New", monospace;
-  font-size: 12px;
-  background: #0f172a;
-  color: #e2e8f0;
-  resize: vertical;
-}
-
-@media (max-width: 960px) {
-  .main {
-    grid-template-columns: 1fr;
+@media (max-width: 768px) {
+  .editorShell {
+    grid-template-columns: 0 1fr 0;
   }
 }

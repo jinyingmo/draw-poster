@@ -1,0 +1,66 @@
+.toolbar {
+  width: 72px;
+  background: #1e293b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 0;
+  gap: 4px;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+
+.toolGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+  padding: 0 6px;
+}
+
+.toolBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: 56px;
+  height: 52px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 6px 4px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.toolBtn:hover:not(:disabled) {
+  background: #334155;
+  color: #f1f5f9;
+}
+
+.toolBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.toolIcon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.toolLabel {
+  font-size: 10px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.divider {
+  width: 40px;
+  height: 1px;
+  background: #334155;
+  margin: 8px 0;
+  flex-shrink: 0;
+}

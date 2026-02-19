@@ -1,0 +1,41 @@
+.stageArea {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e5e7eb;
+  overflow: auto;
+  padding: 24px;
+}
+
+.canvasWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.canvasContainer {
+  position: relative;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  overflow: hidden;
+  line-height: 0;
+}
+
+.renderCanvas {
+  display: block;
+  background: #ffffff;
+}
+
+.overlayCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: auto;
+}
+
+.canvasInfo {
+  font-size: 12px;
+  color: #6b7280;
+}
